@@ -109,6 +109,7 @@ bool DialogCardConfig::eventFilter(QObject *obj, QEvent *event)
  */
 void DialogCardConfig::onDecodeFrame(QByteArray bytes)
 {
+    //对接受到的帧进行解析，信息存储在frame结构体中
     M1356_RspFrame_t frame = m1356dll->M1356_RspFrameConstructor(bytes);
     qDebug() <<"data: " << frame.vdata << frame.cmd << frame.sof;
     if(frame.cmd.remove(" ") == "0702" && frame.status == "00")//授权成功
@@ -152,6 +153,7 @@ void DialogCardConfig::onDecodeFrame(QByteArray bytes)
     {
         ui->lineEditMemData->setText(frame.vdata);
     }
+    //将学号写进卡中
     else if(frame.cmd.remove(" ") == "0A02" && frame.status == "00"){
         uint16 frameLen;
         quint8 buffer[16];
@@ -160,10 +162,12 @@ void DialogCardConfig::onDecodeFrame(QByteArray bytes)
         QSTRING_TO_HEX(userId_registor, (uint8*)(buffer+1),15);
         p = m1356dll->RC632_SendCmdReq(RC632_CMD_M1WRITE,buffer,16);
         frameLen = BUILD_UINT16(p[0], p[1]);
-        qDebug() << frameLen;
+        qDebug() << StudentId_Pos;
+        qDebug() << userId_registor;
         qDebug() << buffer;
         serialPortThread->writeData((char *)(p + 2 ),frameLen);
     }
+    //将手机号写入卡中
     else if(frame.cmd.remove(" ") == "0902" && frame.status == "00" && currentinit == -1){
         uint16 frameLen;
         quint8 buffer[16];
@@ -172,8 +176,9 @@ void DialogCardConfig::onDecodeFrame(QByteArray bytes)
         QSTRING_TO_HEX(userPhone_registor, (uint8*)(buffer+1),15);
         p = m1356dll->RC632_SendCmdReq(RC632_CMD_M1WRITE,buffer,16);
         frameLen = BUILD_UINT16(p[0], p[1]);
-        qDebug() << frameLen;
-        qDebug() << buffer;
+        qDebug() <<Phone_Pos;
+        qDebug() <<userPhone_registor;
+        qDebug() <<buffer;
         serialPortThread->writeData((char *)(p + 2 ),frameLen);
         currentinit = 1;
         QMessageBox::warning(this,tr("温馨提示"),tr("初始化成功"),QMessageBox::Yes);

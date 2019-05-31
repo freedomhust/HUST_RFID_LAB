@@ -12,7 +12,7 @@ AdminTableModel::AdminTableModel(QObject *parent) : QObject(parent)
     tableName = TABLE_NAME_ADMIN;
     header<<QObject::trUtf8("用户名")
           <<QObject::trUtf8("密码")
-          << QObject::trUtf8("备注信息");
+          <<QObject::trUtf8("备注信息");
     model = new QSqlTableModel(this);
 }
 

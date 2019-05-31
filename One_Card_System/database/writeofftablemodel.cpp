@@ -10,7 +10,9 @@
 WriteOffTableModel::WriteOffTableModel(QObject *parent) : QSqlTableModel(parent)
 {
     tableName = TABLE_NAME_WRITEOFF;
-    header<<QObject::trUtf8("卡号")<<QObject::trUtf8("时间")<<QObject::trUtf8("信息备注");
+    header<<QObject::trUtf8("卡号")
+          <<QObject::trUtf8("时间")
+          <<QObject::trUtf8("信息备注");
 }
 
 

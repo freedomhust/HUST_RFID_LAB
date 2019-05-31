@@ -129,6 +129,7 @@ void RechargeDialog::on_btn_clear_clicked()
     ui->lineEdit_money->clear();
     ui->labelMessage->clear();
 }
+
 /**
  * @brief ConsumePage::on_readValue
  * @param value 卡内余额
@@ -182,6 +183,7 @@ void RechargeDialog::on_btn_inventory_clicked()
     serialPortThread->writeData((char *)(p + 2 ),frameLen);
     this->on_btn_clear_clicked();
 }
+
 /**
  * @brief RechargeDialog::on_cardIdReceived
  * @param tagId 卡号
@@ -209,6 +211,7 @@ void RechargeDialog::on_cardIdReceived(QString tagId)
         this->authentication();
     }
 }
+
 /**
  * @brief RechargeDialog::onDecodeFrame
  * @param bytes 接收到的数据
@@ -236,6 +239,7 @@ void RechargeDialog::onDecodeFrame(QByteArray bytes)
                 serialPortThread->writeData((char *)(p + 2 ),frameLen);
             }
                 break;
+            //读取卡内余额
             case 21: //value
             {
                 uint16 frameLen;

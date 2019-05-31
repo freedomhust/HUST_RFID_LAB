@@ -82,6 +82,11 @@ void RegistorWidget::on_btn_Register_clicked()
         message.exec();
         return;
     }
+    if(userPhone.count() != 11){
+        message.setText(tr("请输入11位长度的电话号码"));
+        message.exec();
+        return;
+    }
 
     QString personId = uuid->createUuid().toString();
     QString time = CurrentDateTime();

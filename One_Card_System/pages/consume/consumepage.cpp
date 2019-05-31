@@ -205,7 +205,7 @@ void ConsumePage::readCardId(bool clicked)
 void ConsumePage::on_cardIdReceived(QString tagId)
 {
     bool flag = false;
-    bool flag_lost = false;
+    bool flag_lost = true;
     QString vaild = "是";
     RegisterTableModel *model = new RegisterTableModel(this);
     model->bindTable();
@@ -340,6 +340,7 @@ void ConsumePage::onDecodeFrame(QByteArray bytes)
                 break;
             }
         }
+
         //读取钱包信息命令成功
         else if(frame.cmd.remove(" ") == "0B02" && currentOps == 11)
         {
@@ -348,18 +349,22 @@ void ConsumePage::onDecodeFrame(QByteArray bytes)
             QString modify_value = QString::number(temp.value_f,'f',2);
             emit calcOps(modify_value.toFloat());
         }
+
         //钱包初始化成功
         else if(frame.cmd.remove(" ") == "0A02" && currentOps == 10)
         {
+            QString num = QString::number(block_num,10);
             ui->label_Tips->setText(ui->label_Tips->text() + tr("   状态: 完成,当前余额 %1 元").arg(last_value));
             currentOps = -1;
             RecordTableModel *model = new RecordTableModel(this);
             model->bindTable();
             QString write_value = QString::number(sendData.value,'f',2);
             model->addRecord(sendData.cardId,sendData.time,sendData.addr,
-                             sendData.readerId,write_value,sendData.phone,sendData.remark,(QString)block_num);
+                             sendData.readerId,write_value,sendData.phone,sendData.remark,num);
         }
+
     }
+
     else {
         if(frame.cmd.remove(" ") == "0702")//授权
         {
@@ -455,7 +460,7 @@ void ConsumePage::on_btn_OK2_clicked()
         QMessageBox::warning(this,tr("温馨提示"),tr("请先连接读卡器后再试！"),QMessageBox::Yes);
         return;
     }
-    QString tagId = ui->lineEdit_tagId->text();
+    QString tagId = ui->lineEdit_tagId2->text();
     //用户信息表的信息
     PersonTableModel *persontablemodel = new PersonTableModel;
     persontablemodel->bindTable();
@@ -463,9 +468,9 @@ void ConsumePage::on_btn_OK2_clicked()
     qDebug()<<phone;
 
     //在表内插入一条新的消费记录
-    fillSendData(ui->lineEdit_time1->text(),ui->lineEdit_addr->text(),
-                 ui->lineEdit_ReadId->text(),ui->lineEdit_value->text(),
-                 ui->lineEdit_tagId->text(),phone,ui->remark->toPlainText());
+    fillSendData(ui->lineEdit_time3->text(),ui->lineEdit_addr2->text(),
+                 ui->lineEdit_ReadId2->text(),ui->lineEdit_value2->text(),
+                 ui->lineEdit_tagId2->text(),phone,ui->remark2->toPlainText());
     if(this->checkDataValid())
     {
         this->writeauthentication();
@@ -493,7 +498,7 @@ void ConsumePage::on_btn_OK1_clicked()
         QMessageBox::warning(this,tr("温馨提示"),tr("请先连接读卡器后再试！"),QMessageBox::Yes);
         return;
     }
-    QString tagId = ui->lineEdit_tagId->text();
+    QString tagId = ui->lineEdit_tagId1->text();
     //用户信息表的信息
     PersonTableModel *persontablemodel = new PersonTableModel;
     persontablemodel->bindTable();
@@ -501,9 +506,9 @@ void ConsumePage::on_btn_OK1_clicked()
     qDebug()<<phone;
 
     //在表内插入一条新的消费记录
-    fillSendData(ui->lineEdit_time1->text(),ui->lineEdit_addr->text(),
-                 ui->lineEdit_ReadId->text(),ui->lineEdit_value->text(),
-                 ui->lineEdit_tagId->text(),phone,ui->remark->toPlainText());
+    fillSendData(ui->lineEdit_time2->text(),ui->lineEdit_addr1->text(),
+                 ui->lineEdit_ReadId1->text(),ui->lineEdit_value1->text(),
+                 ui->lineEdit_tagId1->text(),phone,ui->remark1->toPlainText());
     if(this->checkDataValid())
     {
         this->writeauthentication();
@@ -531,7 +536,7 @@ void ConsumePage::on_btn_OK3_clicked()
         QMessageBox::warning(this,tr("温馨提示"),tr("请先连接读卡器后再试！"),QMessageBox::Yes);
         return;
     }
-    QString tagId = ui->lineEdit_tagId->text();
+    QString tagId = ui->lineEdit_tagId3->text();
     //用户信息表的信息
     PersonTableModel *persontablemodel = new PersonTableModel;
     persontablemodel->bindTable();
@@ -539,9 +544,9 @@ void ConsumePage::on_btn_OK3_clicked()
     qDebug()<<phone;
 
     //在表内插入一条新的消费记录
-    fillSendData(ui->lineEdit_time1->text(),ui->lineEdit_addr->text(),
-                 ui->lineEdit_ReadId->text(),ui->lineEdit_value->text(),
-                 ui->lineEdit_tagId->text(),phone,ui->remark->toPlainText());
+    fillSendData(ui->lineEdit_time4->text(),ui->lineEdit_addr3->text(),
+                 ui->lineEdit_ReadId3->text(),ui->lineEdit_value3->text(),
+                 ui->lineEdit_tagId3->text(),phone,ui->remark3->toPlainText());
     if(this->checkDataValid())
     {
         this->writeauthentication();
@@ -634,6 +639,7 @@ void ConsumePage::writeauthentication()
     PersonTableModel *personTableModel =  new PersonTableModel(this);
     personTableModel->bindTable();
     QString t = ui->lineEdit_tagId->text();
+    //判断学号奇偶
     int num = personTableModel->findstunum(t);
 
     //查找消费记录，看里面是否有tagid
@@ -645,43 +651,26 @@ void ConsumePage::writeauthentication()
     if(block_num == -1 || block_num == 4){
         block_num = 0;
     }
-    else block_num++;
+    else block_num = block_num+1;
+    qDebug()<<block_num;
 
     //学号为奇数从2号扇区开始
     if(num == 1){
-        if(block_num == 0){
-            buffer[1] = 0x08;   // 绝对块号
-        }
-        else if(block_num == 1){
-            buffer[1] = 0x09;
-        }
-        else if(block_num == 2){
-            buffer[1] = 0x0A;
-        }
-        else if(block_num == 3){
-            buffer[1] = 0x0C;
-        }
-        else if(block_num == 4){
-            buffer[1] = 0x0D;
-        }
+        // 绝对块号
+        if(block_num == 0)      buffer[1] = 0x08;
+        else if(block_num == 1) buffer[1] = 0x09;
+        else if(block_num == 2) buffer[1] = 0x0A;
+        else if(block_num == 3) buffer[1] = 0x0C;
+        else if(block_num == 4) buffer[1] = 0x0D;
     }
     //学号为偶数从3号扇区开始
     else{
-        if(block_num == 0){
-            buffer[1] = 0x0C;   // 绝对块号
-        }
-        else if(block_num == 1){
-            buffer[1] = 0x0D;
-        }
-        else if(block_num == 2){
-            buffer[1] = 0x0E;
-        }
-        else if(block_num == 3){
-            buffer[1] = 0x10;
-        }
-        else if(block_num == 4){
-            buffer[1] = 0x11;
-        }
+        // 绝对块号
+        if(block_num == 0)      buffer[1] = 0x0C;
+        else if(block_num == 1) buffer[1] = 0x0D;
+        else if(block_num == 2) buffer[1] = 0x0E;
+        else if(block_num == 3) buffer[1] = 0x10;
+        else if(block_num == 4) buffer[1] = 0x11;
     }
 
     for(int i = 2 ; i < 8 ; i ++)
@@ -708,45 +697,28 @@ void ConsumePage::write()
     //进行写操作
     //学号为奇数从2号扇区开始
     if(num == 1){
-        if(block_num == 0){
-            buffer[0] = 0x08;   // 绝对块号
-        }
-        else if(block_num == 1){
-            buffer[0] = 0x09;
-        }
-        else if(block_num == 2){
-            buffer[0] = 0x0A;
-        }
-        else if(block_num == 3){
-            buffer[0] = 0x0C;
-        }
-        else if(block_num == 4){
-            buffer[0] = 0x0D;
-        }
+        // 绝对块号
+        if(block_num == 0)      buffer[1] = 0x08;
+        else if(block_num == 1) buffer[1] = 0x09;
+        else if(block_num == 2) buffer[1] = 0x0A;
+        else if(block_num == 3) buffer[1] = 0x0C;
+        else if(block_num == 4) buffer[1] = 0x0D;
     }
     //学号为偶数从3号扇区开始
     else{
-        if(block_num == 0){
-            buffer[0] = 0x0C;   // 绝对块号
-        }
-        else if(block_num == 1){
-            buffer[0] = 0x0D;
-        }
-        else if(block_num == 2){
-            buffer[0] = 0x0E;
-        }
-        else if(block_num == 3){
-            buffer[0] = 0x10;
-        }
-        else if(block_num == 4){
-            buffer[0] = 0x11;
-        }
+        // 绝对块号
+        if(block_num == 0)      buffer[1] = 0x0C;
+        else if(block_num == 1) buffer[1] = 0x0D;
+        else if(block_num == 2) buffer[1] = 0x0E;
+        else if(block_num == 3) buffer[1] = 0x10;
+        else if(block_num == 4) buffer[1] = 0x11;
     }
 
     //将地址，金额，消费时间写进卡中
-    QString data_consume = ui->lineEdit_addr->text() + ui->lineEdit_value->text() + ui->lineEdit_time1->text();
+    QString data_consume = sendData.addr + sendData.value + sendData.time;
     QSTRING_TO_HEX(data_consume, (uint8*)(buffer+1),15);
     qDebug() << buffer[0];
+    qDebug() <<  sendData.addr + sendData.value +  sendData.time;
     p = m1356dll->RC632_SendCmdReq(RC632_CMD_M1WRITE,buffer,16);
     frameLen = BUILD_UINT16(p[0], p[1]);
     serialPortThread->writeData((char *)(p + 2 ),frameLen);

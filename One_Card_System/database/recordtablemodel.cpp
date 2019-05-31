@@ -82,7 +82,7 @@ QSqlRecord RecordTableModel::findRecord(const QString &tagId)
  */
 int RecordTableModel::findRecordByID(const QString &tagId)
 {
-    for(int row = 0; row<rowCount(); row++){
+    for(int row = rowCount()-1; row>=0; row--){
         if(data(index(row, 0)).toString() == tagId)
             return data(index(row,7)).toInt();
     }

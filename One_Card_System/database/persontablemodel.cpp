@@ -168,12 +168,9 @@ int PersonTableModel::findPhoneByStudentId_tolost(const QString Phone,const int 
  * @brief PersonTableModel::findPhoneByStudentId
  * @param Phone 手机号 row 行号
  * @return 如果当前卡号已挂失，则返回2，如果挂失成功，返回1，不是这个手机号则返回0
- * 根据学号查找手机号顺便挂失
+ * 根据学号查找手机号顺便解挂
  */
 int PersonTableModel::findPhoneByStudentId_tofound(const QString Phone,const int row){
-    QSqlQuery query;
-    QString str;
-
     if(data(index(row,5)).toString() == Phone){
         if(data(index(row,6)).toString() == "Y"){
             return 2;
@@ -211,7 +208,8 @@ QSqlRecord PersonTableModel::findRecordByName(const QString userName)
  * @return 成功返回true，失败返回false
  * 向表格中插入记录
  */
-bool PersonTableModel::insertRecords(QString personId,QString cardId,QString personName, QString userID, QString personType, QString userPhone, QString personRemark)
+bool PersonTableModel::insertRecords(QString personId,QString cardId,QString personName,
+                                     QString userID, QString personType, QString userPhone, QString personRemark)
 {
     QSqlQuery query;
     QString str;
